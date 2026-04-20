@@ -1,0 +1,55 @@
+<h1>抓包结果展示</h1>
+
+<?php if (empty($packets)): ?>
+    <p class="empty">当前没有可展示的数据，请先运行 sniffex 抓取并写入数据库。</p>
+<?php else: ?>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>源 IP</th>
+                <th>目的 IP</th>
+                <th>源端口</th>
+                <th>目的端口</th>
+                <th>Content-Type</th>
+                <th>Payload 大小</th>
+                <th>文件偏移</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($packets as $packet): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars((string) $packet['id'], ENT_QUOTES, 'UTF-8'); ?></td>
+                    <td><?php echo htmlspecialchars($packet['src_ip'], ENT_QUOTES, 'UTF-8'); ?></td>
+                    <td><?php echo htmlspecialchars($packet['dst_ip'], ENT_QUOTES, 'UTF-8'); ?></td>
+                    <td><?php echo htmlspecialchars((string) $packet['src_port'], ENT_QUOTES, 'UTF-8'); ?></td>
+                    <td><?php echo htmlspecialchars((string) $packet['dst_port'], ENT_QUOTES, 'UTF-8'); ?></td>
+                    <td><?php echo htmlspecialchars($packet['content_type'], ENT_QUOTES, 'UTF-8'); ?></td>
+                    <td><?php echo htmlspecialchars((string) $packet['payload_size'], ENT_QUOTES, 'UTF-8'); ?></td>
+                    <td><?php echo htmlspecialchars((string) $packet['file_offset'], ENT_QUOTES, 'UTF-8'); ?></td>
+                </tr>
+                <tr>
+                    <td colspan="8">
+                        <div style="display: flex; gap: 16px; align-items: flex-start;">
+                            <div style="flex: 1; min-width: 0;">
+                                <strong>载荷内容</strong>
+                                <pre><?php echo htmlspecialchars($packet['payload_content'], ENT_QUOTES, 'UTF-8'); ?></pre>
+                            </div>
+                            <?php if (!empty($packet['image_data_uri'])): ?>
+                                <div style="flex-shrink: 0; text-align: center;">
+                                    <strong>原始图像</strong><br>
+                                    <img src="<?php echo $packet['image_data_uri']; ?>" alt="captured image" style="max-width: 300px; max-height: 300px; border: 1px solid #ccc; margin-top: 8px;">
+                                </div>
+                            <?php elseif (!empty($packet['text_body'])): ?>
+                                <div style="flex-shrink: 0; min-width: 200px;">
+                                    <strong>原始文本</strong>
+                                    <pre style="background: #f8f8f8; color: #333; border: 1px solid #ccc; padding: 12px; margin-top: 8px;"><?php echo htmlspecialchars($packet['text_body'], ENT_QUOTES, 'UTF-8'); ?></pre>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+<?php endif; ?>

@@ -1,0 +1,5 @@
+sniffex
+data/payload.log
+web/vendor/
+web/config/autoload/local.php
+*.log

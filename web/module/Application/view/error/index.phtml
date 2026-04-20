@@ -1,0 +1,5 @@
+<h1>应用发生错误</h1>
+<p class="error"><?php echo $this->message ?? 'Unknown error'; ?></p>
+<?php if (isset($this->exception) && $this->exception instanceof Throwable): ?>
+    <pre><?php echo $this->exception->getMessage(); ?></pre>
+<?php endif; ?>

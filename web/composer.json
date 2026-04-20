@@ -1,0 +1,21 @@
+{
+    "name": "mx/sniffex-web",
+    "require": {
+        "laminas/laminas-mvc": "^3.6",
+        "laminas/laminas-view": "^2.18",
+        "laminas/laminas-router": "^3.11",
+        "laminas/laminas-servicemanager": "^3.20",
+        "laminas/laminas-db": "^2.16"
+    },
+    "autoload": {
+        "psr-4": {
+            "Packet\\": "module/Packet/src/Packet/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Ji11",
+            "email": "Jillll@foxmail.com"
+        }
+    ]
+}
