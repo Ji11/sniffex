@@ -31,7 +31,6 @@
 * 且属于以下类型之一：
 
   * `image/png`
-  * `image/gif`
   * `text/plain`
 
 ---
@@ -208,7 +207,7 @@ tcp src port 80
 
    * 检查是否包含 `HTTP/1.1`
 5. 提取 Content-Type
-6. 判断是否属于目标类型（png/gif/text）
+6. 判断是否属于目标类型（png/text）
 
 ---
 

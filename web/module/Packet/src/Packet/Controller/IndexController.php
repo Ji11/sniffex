@@ -25,7 +25,7 @@ class IndexController extends AbstractActionController
             $row['payload_content'] = $this->payloadReader->readBlock($row['file_path'], (int) $row['file_offset']);
             $row['image_data_uri'] = null;
             $row['text_body'] = null;
-            if (str_starts_with($row['content_type'], 'image/')) {
+            if ($row['content_type'] === 'image/png') {
                 $row['image_data_uri'] = $this->payloadReader->extractImageDataUri($row['payload_content'], $row['content_type']);
             } elseif ($row['content_type'] === 'text/plain') {
                 $row['text_body'] = $this->payloadReader->extractTextBody($row['payload_content']);

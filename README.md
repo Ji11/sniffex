@@ -8,7 +8,6 @@
 - 已完成 HTTP 响应筛选：`tcp src port 80`
 - 已完成 `Content-Type` 白名单过滤：
   - `image/png`
-  - `image/gif`
   - `text/plain`
 - 已解析并存储以下字段：
   - 源 IP

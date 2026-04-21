@@ -111,8 +111,16 @@ static void print_app_usage(void)
 {
     printf("Usage: %s [interface]\n", "sniffex");
     printf("\n");
+    printf("Options:\n");
+    printf("    interface    Listen on <interface> for packets.\n");
+    printf("\n");
+    return;
 }
 
+/*
+ * print data in rows of 16 bytes: offset   hex   ascii
+ * 00000   47 45 54 20 2f 20 48 54  54 50 2f 31 2e 31 0d 0a   GET / HTTP/1.1..
+ */
 static void print_hex_ascii_line(FILE *out, const u_char *payload, int len, int offset)
 {
     int i;
@@ -181,6 +189,7 @@ static void print_payload(FILE *out, const u_char *payload, int len)
     }
 }
 
+// 定位到HTTP响应头的 \r\n\r\n
 static const u_char *find_bytes(const u_char *haystack, size_t haystack_len, const char *needle, size_t needle_len)
 {
     size_t i;
@@ -209,32 +218,37 @@ static int extract_content_type(const u_char *payload, int len, char *content_ty
     char *line;
     char *saveptr = NULL;
 
+    // HTTP响应头以"HTTP/1."开头
     if (len < 7 || memcmp(payload, "HTTP/1.", 7) != 0)
     {
         return 0;
     }
 
+    // 找到HTTP响应头的结束标记
     header_end = find_bytes(payload, (size_t)len, "\r\n\r\n", 4);
     if (header_end == NULL)
     {
         return 0;
     }
 
-    header_len = (size_t)(header_end - payload) + 4;
+    header_len = (size_t)(header_end - payload) + 4; // 尾 - 头 + \r\n\r\n
     headers = (char *)malloc(header_len + 1);
     if (headers == NULL)
     {
         return 0;
     }
 
+    // 把响应头部放入headers
     memcpy(headers, payload, header_len);
     headers[header_len] = '\0';
 
+    // 按行寻找content-type
     line = strtok_r(headers, "\r\n", &saveptr);
     while (line != NULL)
     {
         if (strncasecmp(line, "Content-Type:", 13) == 0)
         {
+            // 找到content-type，就截取类型
             char *value = line + 13;
             char *semicolon;
             char *end;
@@ -288,7 +302,6 @@ static int extract_content_type(const u_char *payload, int len, char *content_ty
 static int is_allowed_content_type(const char *content_type)
 {
     return strcmp(content_type, "image/png") == 0 ||
-           strcmp(content_type, "image/gif") == 0 ||
            strcmp(content_type, "text/plain") == 0;
 }
 
