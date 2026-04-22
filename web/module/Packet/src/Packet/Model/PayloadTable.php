@@ -10,6 +10,7 @@ class PayloadTable
         $this->tableGateway = $tableGateway;
     }
 
+    // 按feature_id查询一条payload索引记录
     public function fetchByFeatureId(int $featureId): ?array
     {
         $rowset = $this->tableGateway->select(['feature_id' => $featureId]);

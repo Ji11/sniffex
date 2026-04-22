@@ -15,6 +15,7 @@ class FeatureTable
         $this->adapter = $adapter;
     }
 
+    // 联表查询feature和payload，返回页面展示所需字段
     public function fetchAllWithPayloads(): array
     {
         $sql = new Sql($this->adapter);
@@ -39,6 +40,7 @@ class FeatureTable
         $statement = $sql->prepareStatementForSqlObject($select);
         $result = $statement->execute();
 
+        // 把查询结果整理成普通数组返回给控制器
         $rows = [];
         foreach ($result as $row) {
             $rows[] = $row;

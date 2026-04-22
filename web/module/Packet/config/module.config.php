@@ -10,6 +10,7 @@ use Packet\Model\PayloadTableGateway;
 use Packet\Service\PayloadReader;
 
 return [
+    // 配置首页路由，把根路径交给IndexController
     'router' => [
         'routes' => [
             'home' => [
@@ -24,6 +25,7 @@ return [
             ],
         ],
     ],
+    // 注册控制器工厂，注入查询表和payload读取服务
     'controllers' => [
         'factories' => [
             IndexController::class => function ($container) {
@@ -34,6 +36,7 @@ return [
             },
         ],
     ],
+    // 注册数据库适配器、TableGateway和业务服务
     'service_manager' => [
         'factories' => [
             Adapter::class => function ($container) {
@@ -69,6 +72,7 @@ return [
             },
         ],
     ],
+    // 配置错误页和Packet模块视图目录
     'view_manager' => [
         'display_not_found_reason' => true,
         'display_exceptions' => true,

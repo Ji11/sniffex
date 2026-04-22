@@ -305,6 +305,7 @@ static int is_allowed_content_type(const char *content_type)
            strcmp(content_type, "text/plain") == 0;
 }
 
+// 从抓到的原始报文中解析出结构化记录和payload起始位置
 static int parse_packet_record(const struct pcap_pkthdr *header, const u_char *packet, struct packet_record *record, const u_char **payload_ptr)
 {
     const struct sniff_ip *ip;
@@ -390,6 +391,7 @@ static int parse_packet_record(const struct pcap_pkthdr *header, const u_char *p
     return is_allowed_content_type(record->content_type);
 }
 
+// 把当前报文的元信息、原始payload和解析结果追加写入payload.log
 static int append_payload_block(FILE *fp, unsigned int packet_number, unsigned long long feature_id, const struct packet_record *record, const u_char *payload, unsigned long long *file_offset_out)
 {
     off_t offset;
@@ -460,6 +462,7 @@ static int rewind_payload_log(FILE *fp, unsigned long long file_offset)
     return 1;
 }
 
+// 把解析出的特征字段写入feature表并返回自增主键
 static unsigned long long insert_feature(MYSQL *db, const struct packet_record *record)
 {
     char src_ip_escaped[2 * sizeof(record->src_ip) + 1];
@@ -490,6 +493,7 @@ static unsigned long long insert_feature(MYSQL *db, const struct packet_record *
     return (unsigned long long)mysql_insert_id(db);
 }
 
+// 把payload文件路径和偏移写入payload表，建立和feature的关联
 static int insert_payload(MYSQL *db, unsigned long long feature_id, const char *file_path, unsigned long long file_offset, const char *data_type)
 {
     char file_path_escaped[2049];
@@ -516,6 +520,7 @@ static int insert_payload(MYSQL *db, unsigned long long feature_id, const char *
     return 1;
 }
 
+// 从环境变量或默认值读取数据库配置并建立MySQL连接
 static MYSQL *open_database(void)
 {
     const char *host = getenv("DB_HOST");
@@ -580,6 +585,7 @@ static int ensure_data_directory(void)
     return 0;
 }
 
+// 生成payload.log的绝对路径，供数据库和Web层按偏移回查
 static int build_payload_log_path(char *buffer, size_t buffer_size)
 {
     char cwd[PATH_MAX];
@@ -597,6 +603,7 @@ static int build_payload_log_path(char *buffer, size_t buffer_size)
     return 1;
 }
 
+// 选择默认抓包网卡，优先非回环设备，没有时回退到第一个设备
 static int lookup_default_device(char *buffer, size_t buffer_size, char *errbuf)
 {
     pcap_if_t *devices = NULL;
@@ -720,6 +727,7 @@ int main(int argc, char **argv)
     struct app_state state;
     int loop_result;
 
+    // 初始化运行时状态和临时缓冲区
     memset(&state, 0, sizeof(state));
     memset(dev_buffer, 0, sizeof(dev_buffer));
     memset(errbuf, 0, sizeof(errbuf));
@@ -744,6 +752,7 @@ int main(int argc, char **argv)
         dev = dev_buffer;
     }
 
+    // 准备payload日志目录和绝对路径
     if (!ensure_data_directory())
     {
         exit(EXIT_FAILURE);
@@ -755,6 +764,7 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
+    // 打开payload日志文件并建立数据库连接
     state.payload_fp = fopen(PAYLOAD_LOG_RELATIVE_PATH, "ab+");
     if (state.payload_fp == NULL)
     {
@@ -769,6 +779,7 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
+    // 读取网卡网络信息并打印本次抓包配置
     if (pcap_lookupnet(dev, &net, &mask, errbuf) == -1)
     {
         fprintf(stderr, "Couldn't get netmask for device %s: %s\n", dev, errbuf);
@@ -781,6 +792,7 @@ int main(int argc, char **argv)
     printf("Filter expression: %s\n", FILTER_EXP);
     printf("Payload log: %s\n", state.payload_file_path);
 
+    // 打开抓包句柄并校验链路层类型
     handle = pcap_open_live(dev, SNAP_LEN, 1, 1000, errbuf);
     if (handle == NULL)
     {
@@ -799,6 +811,7 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
+    // 编译并安装BPF过滤器
     if (pcap_compile(handle, &fp, FILTER_EXP, 0, net) == -1)
     {
         fprintf(stderr, "Couldn't parse filter %s: %s\n", FILTER_EXP, pcap_geterr(handle));
@@ -818,6 +831,7 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
+    // 进入抓包主循环，直到达到目标数量或发生错误
     state.handle = handle;
     loop_result = pcap_loop(handle, -1, got_packet, (u_char *)&state);
 
@@ -826,6 +840,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "pcap_loop failed: %s\n", pcap_geterr(handle));
     }
 
+    // 释放抓包和存储相关资源，输出最终结果
     pcap_freecode(&fp);
     pcap_close(handle);
     mysql_close(state.db);
